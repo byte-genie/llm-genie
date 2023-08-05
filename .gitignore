@@ -1,0 +1,20 @@
+*.pyc
+__pycache__/*
+.idea/*
+cache
+*/__pycache__/*
+src/llmtuner/__pycache__/*
+src/llmtuner/api/__pycache__/*
+src/llmtuner/chat/__pycache__/*
+src/llmtuner/dsets/__pycache__/*
+src/llmtuner/extras/__pycache__/*
+src/llmtuner/hparams/__pycache__/*
+src/llmtuner/tuner/__pycache__/*
+ src/llmtuner/tuner/core/__pycache__/*
+ src/llmtuner/tuner/ppo/__pycache__/*
+ src/llmtuner/tuner/pt/__pycache__/*
+ src/llmtuner/tuner/rm/__pycache__/*
+ src/llmtuner/tuner/sft/__pycache__/*
+ src/llmtuner/webui/__pycache__/*
+ src/llmtuner/webui/components/__pycache__/*
+
