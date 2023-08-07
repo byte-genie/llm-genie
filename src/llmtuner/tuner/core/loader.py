@@ -68,10 +68,17 @@ def load_model_and_tokenizer(
         padding_side=model_args.padding_side,
         **config_kwargs
     )
-    if tokenizer.pad_token_id is None or tokenizer.pad_token_id == 64000: # 64000 for baichuan model (older version)
+    if tokenizer.eos_token_id is None: # fix qwen tokenizer
+        tokenizer.eos_token = "<|endoftext|>"
+    if tokenizer.pad_token_id is None: # add pad token
         tokenizer.pad_token = tokenizer.eos_token
 
-    config = AutoConfig.from_pretrained(model_args.model_name_or_path, **config_kwargs)
+    if model_args.checkpoint_dir is not None and finetuning_args.finetuning_type == "full":
+        model_to_load = model_args.checkpoint_dir[0]
+    else:
+        model_to_load = model_args.model_name_or_path
+
+    config = AutoConfig.from_pretrained(model_to_load, **config_kwargs)
     is_mergeable = True
 
     # Quantization configurations (using bitsandbytes library).
@@ -97,11 +104,6 @@ def load_model_and_tokenizer(
         is_mergeable = False
         config_kwargs["device_map"] = {"": int(os.environ.get("LOCAL_RANK", "0"))}
         logger.info("Quantizing model to {} bit.".format(model_args.quantization_bit))
-
-    if model_args.checkpoint_dir is not None and finetuning_args.finetuning_type == "full":
-        model_to_load = model_args.checkpoint_dir[0]
-    else:
-        model_to_load = model_args.model_name_or_path
 
     # Load and prepare pretrained models (without valuehead).
     model = AutoModelForCausalLM.from_pretrained(

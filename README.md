@@ -42,13 +42,20 @@
 
 ## Supported Models
 
-- [LLaMA](https://github.com/facebookresearch/llama) (7B/13B/33B/65B)
-- [LLaMA-2](https://huggingface.co/meta-llama) (7B/13B/70B)
-- [BLOOM](https://huggingface.co/bigscience/bloom) & [BLOOMZ](https://huggingface.co/bigscience/bloomz) (560M/1.1B/1.7B/3B/7.1B/176B)
-- [Falcon](https://huggingface.co/tiiuae/falcon-7b) (7B/40B)
-- [Baichuan](https://huggingface.co/baichuan-inc/baichuan-7B) (7B/13B)
-- [InternLM](https://github.com/InternLM/InternLM) (7B)
-- [Qwen](https://github.com/QwenLM/Qwen-7B) (7B)
+| Model                                                    | Model size                  | Default module    | Template |
+| -------------------------------------------------------- | --------------------------- | ----------------- |----------|
+| [LLaMA](https://github.com/facebookresearch/llama)       | 7B/13B/33B/65B              | q_proj,v_proj     | -        |
+| [LLaMA-2](https://huggingface.co/meta-llama)             | 7B/13B/70B                  | q_proj,v_proj     | llama2   |
+| [BLOOM](https://huggingface.co/bigscience/bloom)         | 560M/1.1B/1.7B/3B/7.1B/176B | query_key_value   | -        |
+| [BLOOMZ](https://huggingface.co/bigscience/bloomz)       | 560M/1.1B/1.7B/3B/7.1B/176B | query_key_value   | -        |
+| [Falcon](https://huggingface.co/tiiuae/falcon-7b)        | 7B/40B                      | query_key_value   | -        |
+| [Baichuan](https://github.com/baichuan-inc/baichuan-13B) | 7B/13B                      | W_pack            | baichuan |
+| [InternLM](https://github.com/InternLM/InternLM)         | 7B                          | q_proj,v_proj     | intern   |
+| [Qwen](https://github.com/QwenLM/Qwen-7B)                | 7B                          | c_attn            | chatml   |
+| [XVERSE](https://github.com/xverse-ai/XVERSE-13B)        | 13B                         | q_proj,v_proj     | -        |
+
+> * **Default module** is used for the `--lora_target` argument. Please use `python src/train_bash.py -h` to see all available options.
+> * For the "base" models, the `--template` argument can be chosen from `default`, `alpaca`, `vicuna` etc.
 
 ## Supported Training Approaches
 
