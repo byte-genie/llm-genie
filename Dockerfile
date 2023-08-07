@@ -42,6 +42,7 @@ RUN conda init bash && \
 ## install requirements
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN pip install einops transformers_stream_generator
 ## create dir for storing trained models
 RUN mkdir -p /data
 ## copy code
