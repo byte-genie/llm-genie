@@ -43,7 +43,18 @@ RUN conda init bash && \
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 RUN pip install einops transformers_stream_generator
+## install deepspeed
 RUN pip install deepspeed
+# ENV STAGE_DIR=/tmp
+# RUN mkdir -p ${STAGE_DIR}
+# RUN git clone https://github.com/microsoft/DeepSpeed.git ${STAGE_DIR}/DeepSpeed
+# RUN pip install triton
+# RUN cd ${STAGE_DIR}/DeepSpeed && \
+#     git checkout . && \
+#     git checkout master && \
+#     DS_BUILD_OPS=1 pip install .
+# RUN rm -rf ${STAGE_DIR}/DeepSpeed
+# RUN python -c "import deepspeed; print(deepspeed.__version__)" && ds_report
 ## create dir for storing trained models
 RUN mkdir -p /data
 ## copy code
