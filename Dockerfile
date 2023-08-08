@@ -1,6 +1,7 @@
 FROM nvidia/cuda:12.1.1-runtime-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CUDA_HOME=/usr/local/cuda
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64
 ENV PATH=$PATH:/usr/local/cuda/bin
 RUN apt-get update && \
     apt-get install -y python3-pip python3-dev git && \
