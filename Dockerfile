@@ -1,11 +1,14 @@
-FROM nvidia/cuda:12.1.1-runtime-ubuntu20.04
+FROM nvidia/cuda:12.2.0-devel-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
-ENV CUDA_HOME=/usr/local/cuda
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64
-ENV PATH=$PATH:/usr/local/cuda/bin
+ENV STAGE_DIR=/tmp
+RUN mkdir -p ${STAGE_DIR}
+# ENV CUDA_HOME=/usr/local/cuda
+# ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64
+# ENV PATH=$PATH:/usr/local/cuda/bin
 RUN apt-get update && \
     apt-get install -y python3-pip python3-dev git && \
     rm -rf /var/lib/apt/lists/*
+RUN python3 --version
 ## install curl
 RUN apt-get update && apt -y install curl
 WORKDIR /code
@@ -15,8 +18,8 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.c
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 RUN apt-get update
 RUN apt-get install -y google-cloud-sdk
-## install img libraries
-RUN apt-get install ffmpeg libsm6 libxext6  -y
+# ## install img libraries
+# RUN apt-get install ffmpeg libsm6 libxext6  -y
 ## install git-lfs
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
 RUN apt-get install git-lfs
@@ -45,20 +48,32 @@ RUN conda init bash && \
 ## install requirements
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-RUN pip install einops transformers_stream_generator
-## install deepspeed
-RUN pip install deepspeed
-# ENV STAGE_DIR=/tmp
-# RUN mkdir -p ${STAGE_DIR}
+# RUN pip install deepspeed
+# RUN pip install einops transformers_stream_generator
+# ##############################################################################
+# ## Add deepspeed user
+# ###############################################################################
+# # Add a deepspeed user with user id 8877
+# #RUN useradd --create-home --uid 8877 deepspeed
+# RUN useradd --create-home --uid 1000 --shell /bin/bash deepspeed
+# RUN usermod -aG sudo deepspeed
+# RUN echo "deepspeed ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+# # # Change to non-root privilege
+# USER deepspeed
+#
+# ##############################################################################
+# # DeepSpeed
+# ##############################################################################
 # RUN git clone https://github.com/microsoft/DeepSpeed.git ${STAGE_DIR}/DeepSpeed
-# RUN pip install triton
-# RUN cd ${STAGE_DIR}/DeepSpeed && \
-#     git checkout . && \
-#     git checkout master && \
-#     DS_BUILD_OPS=1 pip install .
+# WORKDIR ${STAGE_DIR}/DeepSpeed
+# RUN git checkout .
+# RUN git checkout master
+# RUN chmod +x install.sh
+# RUN /bin/bash ./install.sh --pip_sudo
 # RUN rm -rf ${STAGE_DIR}/DeepSpeed
-# RUN python -c "import deepspeed; print(deepspeed.__version__)" && ds_report
-## create dir for storing trained models
-RUN mkdir -p /data
+# RUN python -c "import deepspeed; print(deepspeed.__version__)"
+# ## create dir for storing trained models
+# RUN mkdir -p /data
 ## copy code
 COPY ./ /code
+WORKDIR /code
