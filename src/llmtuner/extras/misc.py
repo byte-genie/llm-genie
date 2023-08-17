@@ -1,7 +1,11 @@
 import torch
 from typing import TYPE_CHECKING, List, Optional, Tuple
-
-from transformers import LogitsProcessor, LogitsProcessorList, StoppingCriteria, StoppingCriteriaList
+from transformers import (
+    LogitsProcessor,
+    LogitsProcessorList,
+    StoppingCriteria,
+    StoppingCriteriaList
+)
 
 from llmtuner.extras.constants import LAYERNORM_NAMES
 
@@ -91,7 +95,6 @@ def prepare_model_for_training(
     use_gradient_checkpointing: Optional[bool] = True,
     layer_norm_names: Optional[List[str]] = LAYERNORM_NAMES
 ) -> "PreTrainedModel":
-
     for name, param in model.named_parameters():
         if param.ndim == 1 and any(layer_norm_name in name for layer_norm_name in layer_norm_names):
             param.data = param.data.to(torch.float32)
@@ -108,9 +111,6 @@ def prepare_model_for_training(
         model.config.use_cache = False # turn off when gradient checkpointing is enabled
 
     if finetuning_type != "full" and hasattr(model, output_layer_name):
-        if hasattr(model, "config") and hasattr(model.config, "pretraining_tp"):
-            model.config.pretraining_tp = 1 # disable TP for LoRA (https://github.com/huggingface/peft/pull/728)
-
         output_layer: torch.nn.Linear = getattr(model, output_layer_name)
         input_dtype = output_layer.weight.dtype
 
@@ -138,6 +138,9 @@ def dispatch_model(model: "PreTrainedModel") -> "PreTrainedModel":
     Dispatches a pre-trained model to GPUs with balanced memory.
     Borrowed from: https://github.com/huggingface/transformers/blob/v4.31.0/src/transformers/modeling_utils.py#L2803
     """
+    if getattr(model, "is_loaded_in_8bit", False) or getattr(model, "is_loaded_in_4bit", False): # do nothing
+        return model
+
     if torch.cuda.device_count() > 1:
         from accelerate import dispatch_model
         from accelerate.utils import infer_auto_device_map, get_balanced_memory

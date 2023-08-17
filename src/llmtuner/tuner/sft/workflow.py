@@ -5,7 +5,7 @@ from transformers import DataCollatorForSeq2Seq
 
 from llmtuner.dsets import get_dataset, preprocess_dataset, split_dataset
 from llmtuner.extras.constants import IGNORE_INDEX
-from llmtuner.extras.misc import get_logits_processor
+from llmtuner.extras.misc import get_logits_processor, get_stopping_criteria
 from llmtuner.extras.ploting import plot_loss
 from llmtuner.tuner.core import load_model_and_tokenizer
 from llmtuner.tuner.sft.metric import ComputeMetrics
@@ -13,7 +13,7 @@ from llmtuner.tuner.sft.trainer import Seq2SeqPeftTrainer
 
 if TYPE_CHECKING:
     from transformers import Seq2SeqTrainingArguments, TrainerCallback
-    from llmtuner.hparams import ModelArguments, DataArguments, FinetuningArguments
+    from llmtuner.hparams import ModelArguments, DataArguments, FinetuningArguments, GeneratingArguments
 
 
 def run_sft(
@@ -21,6 +21,7 @@ def run_sft(
     data_args: "DataArguments",
     training_args: "Seq2SeqTrainingArguments",
     finetuning_args: "FinetuningArguments",
+    generating_args: "GeneratingArguments",
     callbacks: Optional[List["TrainerCallback"]] = None
 ):
     dataset = get_dataset(model_args, data_args)
@@ -46,17 +47,15 @@ def run_sft(
         data_collator=data_collator,
         callbacks=callbacks,
         compute_metrics=ComputeMetrics(tokenizer) if training_args.predict_with_generate else None,
-        **split_dataset(dataset, data_args.dev_ratio, training_args.do_train)
+        **split_dataset(dataset, data_args, training_args)
     )
 
     # Keyword arguments for `model.generate`
-    gen_kwargs = {
-        "do_sample": True,
-        "top_p": 0.7,
-        "max_new_tokens": data_args.max_target_length + 1,
-        "temperature": 0.95,
-        "logits_processor": get_logits_processor()
-    }
+    gen_kwargs = generating_args.to_dict()
+    gen_kwargs["eos_token_id"] = tokenizer.eos_token_id
+    gen_kwargs["pad_token_id"] = tokenizer.pad_token_id
+    gen_kwargs["logits_processor"] = get_logits_processor()
+    gen_kwargs["stopping_criteria"] = get_stopping_criteria(tokenizer.additional_special_tokens_ids)
 
     # Training
     if training_args.do_train:
