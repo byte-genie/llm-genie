@@ -112,8 +112,7 @@ RUN if [ -n "$CUDA_VERSION" ] ; then \
         rm -rf /var/lib/apt/lists/* \
         apt-key del 7fa2af80 && \
         mkdir -p /tmp/cuda-keyring && \
-        wget -P /tmp/cuda-keyring 
-https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
+        wget -P /tmp/cuda-keyring https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
         dpkg -i /tmp/cuda-keyring/cuda-keyring_1.0-1_all.deb && \
         rm -rf /tmp/cuda-keyring ; \
     fi
@@ -217,10 +216,8 @@ ARG TORCHTEXT_VERSION
 # Set so supporting PyTorch packages such as Torchvision, Torchaudio, Torchtext pin PyTorch version
 ENV PYTORCH_VERSION=${PYTORCH_VERSION}
 
-RUN CUDA_VERSION_TAG=$(python${PYTHON_VERSION} -c "print('cu' + ''.join('${CUDA_VERSION}'.split('.')[:2]) if 
-'${CUDA_VERSION}' else 'cpu')") && \
-    pip${PYTHON_VERSION} install --no-cache-dir --find-links 
-https://download.pytorch.org/whl/torch_stable.html \
+RUN CUDA_VERSION_TAG=$(python${PYTHON_VERSION} -c "print('cu' + ''.join('${CUDA_VERSION}'.split('.')[:2]) if '${CUDA_VERSION}' else 'cpu')") && \
+    pip${PYTHON_VERSION} install --no-cache-dir --find-links https://download.pytorch.org/whl/torch_stable.html \
         torch==${PYTORCH_VERSION}+${CUDA_VERSION_TAG} \
         torchvision==${TORCHVISION_VERSION}+${CUDA_VERSION_TAG} \
         torchtext==${TORCHTEXT_VERSION}
@@ -232,8 +229,7 @@ https://download.pytorch.org/whl/torch_stable.html \
 ARG EFA_INSTALLER_VERSION=latest
 ARG AWS_OFI_NCCL_VERSION
 
-ENV 
-LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/opt/aws-ofi-nccl/install/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/opt/aws-ofi-nccl/install/lib:$LD_LIBRARY_PATH
 ENV PATH=/opt/amazon/openmpi/bin/:/opt/amazon/efa/bin:$PATH
 ENV FI_EFA_USE_DEVICE_RDMA=1
 
@@ -267,12 +263,9 @@ ARG MOFED_VERSION
 
 RUN if [ -n "$MOFED_VERSION" ] ; then \
         mkdir -p /tmp/mofed && \
-        wget -nv -P /tmp/mofed 
-http://content.mellanox.com/ofed/MLNX_OFED-${MOFED_VERSION}/MLNX_OFED_LINUX-${MOFED_VERSION}-ubuntu20.04-x86_64.tgz 
-&& \
+        wget -nv -P /tmp/mofed http://content.mellanox.com/ofed/MLNX_OFED-${MOFED_VERSION}/MLNX_OFED_LINUX-${MOFED_VERSION}-ubuntu20.04-x86_64.tgz && \
         tar -zxvf /tmp/mofed/MLNX_OFED_LINUX-${MOFED_VERSION}-ubuntu20.04-x86_64.tgz -C /tmp/mofed && \
-        /tmp/mofed/MLNX_OFED_LINUX-${MOFED_VERSION}-ubuntu20.04-x86_64/mlnxofedinstall --user-space-only 
---without-fw-update --force && \
+        /tmp/mofed/MLNX_OFED_LINUX-${MOFED_VERSION}-ubuntu20.04-x86_64/mlnxofedinstall --user-space-only --without-fw-update --force && \
         rm -rf /tmp/mofed ; \
     fi
 
@@ -309,8 +302,7 @@ RUN pip${PYTHON_VERSION} install --no-cache-dir cmake==3.26.3
 ###########################
 # Install Pandoc Dependency
 ###########################
-# Pandoc is needed for the documentation build and is a nuisance to install via pip so just installing via 
-dpkg
+# Pandoc is needed for the documentation build and is a nuisance to install via pip so just installing via dpkg
 RUN wget https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb && \
     dpkg -i pandoc-2.19.2-1-amd64.deb && \
     rm pandoc-2.19.2-1-amd64.deb
@@ -393,10 +385,8 @@ ARG PYTHON_VERSION
 ARG CUPY_VERSION
 ARG CUDA_VERSION
 
-RUN CUDA_VERSION_TAG=$(python${PYTHON_VERSION} -c "print('cu' + ''.join('${CUDA_VERSION}'.split('.')[:2]) if 
-'${CUDA_VERSION}' else 'cpu')") && \
-    MMCV_TORCH_VERSION=$(python -c "print('torch' + ''.join('${PYTORCH_VERSION}'.split('.')[:2]) + '.0')") 
-&& \
+RUN CUDA_VERSION_TAG=$(python${PYTHON_VERSION} -c "print('cu' + ''.join('${CUDA_VERSION}'.split('.')[:2]) if '${CUDA_VERSION}' else 'cpu')") && \
+    MMCV_TORCH_VERSION=$(python -c "print('torch' + ''.join('${PYTORCH_VERSION}'.split('.')[:2]) + '.0')") && \
     sudo pip${PYTHON_VERSION} install --no-cache-dir \
         "ffcv<1.0.3" \
         "opencv-python${OPENCV_VERSION}" \
@@ -404,8 +394,7 @@ RUN CUDA_VERSION_TAG=$(python${PYTHON_VERSION} -c "print('cu' + ''.join('${CUDA_
         "mmsegmentation${MMSEGMENTATION_VERSION}" && \
     sudo pip${PYTHON_VERSION} install --no-cache-dir \
         "mmcv-full${MMCV_VERSION}" \
-        -f https://download.openmmlab.com/mmcv/dist/${CUDA_VERSION_TAG}/${MMCV_TORCH_VERSION}/index.html && 
-\
+        -f https://download.openmmlab.com/mmcv/dist/${CUDA_VERSION_TAG}/${MMCV_TORCH_VERSION}/index.html && \
     if [ -n "$CUDA_VERSION" ] ; then \
         sudo pip${PYTHON_VERSION} install --no-cache-dir cupy-cuda11x${CUPY_VERSION}; \
     fi
