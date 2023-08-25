@@ -18,3 +18,4 @@ matplotlib
 einops
 transformers_stream_generator
 deepspeed
+huggingface-hub==0.16.4
