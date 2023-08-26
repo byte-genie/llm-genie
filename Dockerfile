@@ -48,32 +48,6 @@ RUN conda init bash && \
 ## install requirements
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-# RUN pip install deepspeed
-# RUN pip install einops transformers_stream_generator
-# ##############################################################################
-# ## Add deepspeed user
-# ###############################################################################
-# # Add a deepspeed user with user id 8877
-# #RUN useradd --create-home --uid 8877 deepspeed
-# RUN useradd --create-home --uid 1000 --shell /bin/bash deepspeed
-# RUN usermod -aG sudo deepspeed
-# RUN echo "deepspeed ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-# # # Change to non-root privilege
-# USER deepspeed
-#
-# ##############################################################################
-# # DeepSpeed
-# ##############################################################################
-# RUN git clone https://github.com/microsoft/DeepSpeed.git ${STAGE_DIR}/DeepSpeed
-# WORKDIR ${STAGE_DIR}/DeepSpeed
-# RUN git checkout .
-# RUN git checkout master
-# RUN chmod +x install.sh
-# RUN /bin/bash ./install.sh --pip_sudo
-# RUN rm -rf ${STAGE_DIR}/DeepSpeed
-# RUN python -c "import deepspeed; print(deepspeed.__version__)"
-# ## create dir for storing trained models
-# RUN mkdir -p /data
 ## copy code
 COPY ./ /code
 WORKDIR /code
