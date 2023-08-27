@@ -9,7 +9,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 def push_model_to_hf_hub(
         model_id: str,
-        checkpoints_dir: str = '/code/data/checkpoints',
+        checkpoints_dir: str = '/data/checkpoints',
         org_id: str = 'ESGenie',
         hf_token: str = "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",
 ):
@@ -30,7 +30,7 @@ def push_model_to_hf_hub(
     ## read fine-tuned model
     model = PeftModel.from_pretrained(
         model=model,
-        model_id=f"/code/data/checkpoints",
+        model_id=checkpoints_dir,
         use_auth_token=True,
         is_trainable=True,
     )
@@ -61,7 +61,7 @@ if __name__ == "__main__":
                             metavar='checkpoints_dir',
                             nargs='?',
                             type=str,
-                            default='/code/data/checkpoints',
+                            default='data/checkpoints',
                             help='local checkpoints directory')
     ## add arg: HF org id
     arg_parser.add_argument('-hf_org', '--hf_org',
