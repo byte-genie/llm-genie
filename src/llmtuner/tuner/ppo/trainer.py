@@ -10,7 +10,7 @@ from trl import PPOTrainer
 from trl.core import LengthSampler
 
 from llmtuner.extras.logging import get_logger
-from llmtuner.extras.misc import AverageMeter, count_parameters, get_logits_processor
+from llmtuner.extras.misc import AverageMeter, count_parameters, get_logits_processor, get_stopping_criteria
 from llmtuner.tuner.core.trainer import PeftTrainer
 from llmtuner.tuner.ppo.utils import cast_layernorm_dtype, replace_model
 
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from transformers import Seq2SeqTrainingArguments
     from trl import AutoModelForCausalLMWithValueHead
     from llmtuner.extras.callbacks import LogCallback
-    from llmtuner.hparams import FinetuningArguments
+    from llmtuner.hparams import FinetuningArguments, GeneratingArguments
 
 
 logger = get_logger(__name__)
@@ -33,16 +33,17 @@ class PPOPeftTrainer(PPOTrainer, PeftTrainer):
         self,
         training_args: "Seq2SeqTrainingArguments",
         finetuning_args: "FinetuningArguments",
+        generating_args: "GeneratingArguments",
         callbacks: List["LogCallback"],
         **kwargs
     ):
         PPOTrainer.__init__(self, **kwargs)
         self.args = training_args
         self.finetuning_args = finetuning_args
+        self.generating_args = generating_args
         self.log_callback = callbacks[0]
         self.state = TrainerState()
         self.control = TrainerControl()
-        self._remove_log()
 
     def ppo_train(self, max_target_length: int) -> None:
         r"""
@@ -72,14 +73,12 @@ class PPOPeftTrainer(PPOTrainer, PeftTrainer):
             logger.info(f"  Number of trainable parameters = {count_parameters(self.model)[0]}")
 
         # Keyword arguments for `model.generate`
-        gen_kwargs = {
-            "top_k": 0.0,
-            "top_p": 1.0,
-            "do_sample": True,
-            "pad_token_id": self.tokenizer.pad_token_id,
-            "eos_token_id": self.tokenizer.eos_token_id,
-            "logits_processor": get_logits_processor()
-        }
+        gen_kwargs = self.generating_args.to_dict()
+        gen_kwargs["eos_token_id"] = self.tokenizer.eos_token_id
+        gen_kwargs["pad_token_id"] = self.tokenizer.pad_token_id
+        gen_kwargs["logits_processor"] = get_logits_processor()
+        gen_kwargs["stopping_criteria"] = get_stopping_criteria(self.tokenizer.additional_special_tokens_ids)
+
         length_sampler = LengthSampler(max_target_length // 2, max_target_length)
         unwrapped_model: "AutoModelForCausalLMWithValueHead" = self.accelerator.unwrap_model(self.model)
 
@@ -185,6 +184,8 @@ class PPOPeftTrainer(PPOTrainer, PeftTrainer):
         replace_model(unwrapped_model, target="reward")
         batch = self.prepare_model_inputs(queries, responses)
         _, _, values = self.model(**batch, output_hidden_states=True, return_dict=True)
+        if values.size(0) != batch["input_ids"].size(0):
+            values = torch.transpose(values, 0, 1)
         rewards = [reward for reward in values[:, -1].float().detach().cpu()] # use fp32 type
         replace_model(unwrapped_model, target="default")
         return rewards

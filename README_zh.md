@@ -13,42 +13,38 @@
 | [InternLM](https://github.com/InternLM/InternLM)         | 7B                          | q_proj,v_proj     | intern   |
 | [Qwen](https://github.com/QwenLM/Qwen-7B)                | 7B                          | c_attn            | chatml   |
 | [XVERSE](https://github.com/xverse-ai/XVERSE-13B)        | 13B                         | q_proj,v_proj     | -        |
+| [ChatGLM2](https://github.com/THUDM/ChatGLM2-6B)         | 6B                          | query_key_value   | chatglm2 |
 
-> * **默认模块**是 `--lora_target` 参数的默认值。请使用 `python src/train_bash.py -h` 查看全部可选项。
-> * 对于所有“基座”模型，`--template` 参数可以是 `default`, `alpaca`, `vicuna` 等值。
+- **默认模块**是 `--lora_target` 参数的部分可选项。请使用 `python src/train_bash.py -h` 查看全部可选项。
+- 对于所有“基座”（Base）模型，`--template` 参数可以是 `default`, `alpaca`, `vicuna` 等任意值。但“对话”（Chat）模型请务必使用对应的模板。
 
-## 微调方法
+## 训练方法
 
-- [二次预训练](https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf)
-  - 全参数微调
-  - 部分参数微调
-  - [LoRA](https://arxiv.org/abs/2106.09685)
-  - [QLoRA](https://arxiv.org/abs/2305.14314)
-- [指令监督微调](https://arxiv.org/abs/2109.01652)
-  - 全参数微调
-  - 部分参数微调
-  - [LoRA](https://arxiv.org/abs/2106.09685)
-  - [QLoRA](https://arxiv.org/abs/2305.14314)
-- [人类反馈的强化学习（RLHF）](https://arxiv.org/abs/2203.02155)
-  - [LoRA](https://arxiv.org/abs/2106.09685)
-  - [QLoRA](https://arxiv.org/abs/2305.14314)
+| 方法                   |     全参数训练      |    部分参数训练     |       LoRA         |       QLoRA        |
+| ---------------------- | ------------------ | ------------------ | ------------------ | ------------------ |
+| 预训练                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| 指令监督微调            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| 奖励模型训练            |                    |                    | :white_check_mark: | :white_check_mark: |
+| PPO 训练               |                    |                    | :white_check_mark: | :white_check_mark: |
+| DPO 训练               | :white_check_mark: |                    | :white_check_mark: | :white_check_mark: |
+
+- 使用 `--quantization_bit 4/8` 参数来启用 QLoRA 训练。
 
 ## 数据集
 
-- 用于二次预训练:
+- 用于预训练：
   - [Wiki Demo (en)](data/wiki_demo.txt)
   - [RefinedWeb (en)](https://huggingface.co/datasets/tiiuae/falcon-refinedweb)
   - [StarCoder (en)](https://huggingface.co/datasets/bigcode/starcoderdata)
   - [Wikipedia (en)](https://huggingface.co/datasets/olm/olm-wikipedia-20221220)
   - [Wikipedia (zh)](https://huggingface.co/datasets/pleisto/wikipedia-cn-20230720-filtered)
-- 用于指令监督微调:
+- 用于指令监督微调：
   - [Stanford Alpaca (en)](https://github.com/tatsu-lab/stanford_alpaca)
   - [Stanford Alpaca (zh)](https://github.com/ymcui/Chinese-LLaMA-Alpaca)
   - [GPT-4 Generated Data (en&zh)](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM)
   - [Open Assistant (multilingual)](https://huggingface.co/datasets/OpenAssistant/oasst1)
   - [Self-cognition (zh)](data/self_cognition.json)
   - [ShareGPT (zh)](https://huggingface.co/datasets/QingyiSi/Alpaca-CoT/tree/main/Chinese-instruction-collection)
-  - [RefGPT (zh)](https://github.com/sufengniu/RefGPT)
   - [Guanaco Dataset (multilingual)](https://huggingface.co/datasets/JosephusCheung/GuanacoDataset)
   - [BELLE 2M (zh)](https://huggingface.co/datasets/BelleGroup/train_2M_CN)
   - [BELLE 1M (zh)](https://huggingface.co/datasets/BelleGroup/train_1M_CN)
@@ -63,7 +59,7 @@
   - [Web QA (zh)](https://huggingface.co/datasets/suolyer/webqa)
   - [UltraChat (en)](https://github.com/thunlp/UltraChat)
   - [WebNovel (zh)](https://huggingface.co/datasets/zxbsmk/webnovel_cn)
-- 用于奖励模型训练:
+- 用于奖励模型或 DPO 训练：
   - [HH-RLHF (en)](https://huggingface.co/datasets/Anthropic/hh-rlhf)
   - [Open Assistant (multilingual)](https://huggingface.co/datasets/OpenAssistant/oasst1)
   - [GPT-4 Generated Data (en&zh)](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM)
@@ -121,7 +117,7 @@ CUDA_VISIBLE_DEVICES=0 python src/train_web.py
 
 目前网页 UI 仅支持**单卡训练**。
 
-### 二次预训练
+### 预训练
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
@@ -167,8 +163,6 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --fp16
 ```
 
-使用 Baichuan 模型时请指定 `--lora_target W_pack` 参数。
-
 ### 奖励模型训练
 
 ```bash
@@ -182,7 +176,7 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --resume_lora_training False \
     --checkpoint_dir path_to_sft_checkpoint \
     --output_dir path_to_rm_checkpoint \
-    --per_device_train_batch_size 4 \
+    --per_device_train_batch_size 2 \
     --gradient_accumulation_steps 4 \
     --lr_scheduler_type cosine \
     --logging_steps 10 \
@@ -193,7 +187,7 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --fp16
 ```
 
-### RLHF 训练
+### PPO 训练
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
@@ -217,7 +211,33 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --plot_loss
 ```
 
+### DPO 训练
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
+    --stage dpo \
+    --model_name_or_path path_to_your_model \
+    --do_train \
+    --dataset comparison_gpt4_zh \
+    --template default \
+    --finetuning_type lora \
+    --resume_lora_training False \
+    --checkpoint_dir path_to_sft_checkpoint \
+    --output_dir path_to_dpo_checkpoint \
+    --per_device_train_batch_size 2 \
+    --gradient_accumulation_steps 4 \
+    --lr_scheduler_type cosine \
+    --logging_steps 10 \
+    --save_steps 1000 \
+    --learning_rate 1e-5 \
+    --num_train_epochs 1.0 \
+    --plot_loss \
+    --fp16
+```
+
 ### 多 GPU 分布式训练
+
+#### 使用 Huggingface Accelerate
 
 ```bash
 accelerate config # 首先配置分布式环境
@@ -252,7 +272,45 @@ use_cpu: false
 
 </details>
 
-### 指标评估（BLEU分数和汉语ROUGE分数）
+#### 使用 DeepSpeed
+
+```bash
+deepspeed --num_gpus 8 --master_port=9901 src/train_bash.py \
+    --deepspeed ds_config.json \
+    ... # 参数同上
+```
+
+<details><summary>使用 DeepSpeed ZeRO-2 进行全参数微调的 DeepSpeed 配置示例</summary>
+
+```json
+{
+  "train_micro_batch_size_per_gpu": "auto",
+  "gradient_accumulation_steps": "auto",
+  "gradient_clipping": "auto",
+  "zero_allow_untested_optimizer": true,
+  "fp16": {
+    "enabled": "auto",
+    "loss_scale": 0,
+    "initial_scale_power": 16,
+    "loss_scale_window": 1000,
+    "hysteresis": 2,
+    "min_loss_scale": 1
+  },  
+  "zero_optimization": {
+    "stage": 2,
+    "allgather_partitions": true,
+    "allgather_bucket_size": 5e8,
+    "reduce_scatter": true,
+    "reduce_bucket_size": 5e8,
+    "overlap_comm": false,
+    "contiguous_gradients": true
+  }
+}
+```
+
+</details>
+
+### 指标评估（BLEU 分数和汉语 ROUGE 分数）
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
@@ -269,7 +327,7 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --predict_with_generate
 ```
 
-我们建议在量化模型的评估中使用 `--per_device_eval_batch_size=1` 和 `--max_target_length 128` 参数。
+我们建议在量化模型的评估中使用 `--per_device_eval_batch_size=1` 和 `--max_target_length 128`。
 
 ### 模型预测
 
