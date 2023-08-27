@@ -3,6 +3,7 @@
 # https://github.com/CarperAI/trlx/blob/main/examples/summarize_rlhf/reward_model/train_reward_model_gptj.py
 
 from typing import TYPE_CHECKING, Optional, List
+from transformers import Seq2SeqTrainingArguments
 
 from llmtuner.dsets import get_dataset, preprocess_dataset, split_dataset
 from llmtuner.extras.ploting import plot_loss
@@ -12,7 +13,7 @@ from llmtuner.tuner.rm.collator import PairwiseDataCollatorWithPadding
 from llmtuner.tuner.rm.trainer import PairwisePeftTrainer
 
 if TYPE_CHECKING:
-    from transformers import Seq2SeqTrainingArguments, TrainerCallback
+    from transformers import TrainerCallback
     from llmtuner.hparams import ModelArguments, DataArguments, FinetuningArguments
 
 
@@ -28,7 +29,9 @@ def run_rm(
     dataset = preprocess_dataset(dataset, tokenizer, data_args, training_args, stage="rm")
     data_collator = PairwiseDataCollatorWithPadding(tokenizer)
 
-    training_args.remove_unused_columns = False # important for pairwise dataset
+    training_args_dict = training_args.to_dict()
+    training_args_dict.update(dict(remove_unused_columns=False)) # important for pairwise dataset
+    training_args = Seq2SeqTrainingArguments(**training_args_dict)
 
     # Initialize our Trainer
     trainer = PairwisePeftTrainer(

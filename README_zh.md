@@ -12,6 +12,8 @@
 
 ## 更新日志
 
+[23/08/18] 现在我们支持了**训练状态恢复**，请将 `transformers` 升级至 `4.31.0` 以启用此功能。
+
 [23/08/12] 现在我们支持了 **RoPE 插值**来扩展 LLaMA 模型的上下文长度。请尝试使用 `--rope_scaling linear` 参数训练模型或使用 `--rope_scaling dynamic` 参数评估模型。
 
 [23/08/11] 现在我们支持了指令模型的 **[DPO 训练](https://arxiv.org/abs/2305.18290)**。详情请参阅[此示例](#dpo-训练)（实验性功能）。
@@ -24,7 +26,7 @@
 
 [23/07/19] 现在我们支持了 **LLaMA-2** 模型的训练。请尝试使用 `--model_name_or_path meta-llama/Llama-2-7b-hf` 参数。使用 LLaMA-2-chat 模型时请添加 `--template llama2` 参数。
 
-[23/07/18] 我们开发了支持训练和测试的**一体化浏览器界面**。请尝试使用 `train_web.py` 在您的浏览器中微调模型。感谢 [@KanadeSiina](https://github.com/KanadeSiina) 和 [@codemayq](https://github.com/codemayq) 在该功能开发中付出的努力。
+[23/07/18] 我们开发了支持训练和测试的**浏览器一体化界面**。请尝试使用 `train_web.py` 在您的浏览器中微调模型。感谢 [@KanadeSiina](https://github.com/KanadeSiina) 和 [@codemayq](https://github.com/codemayq) 在该功能开发中付出的努力。
 
 [23/07/11] 现在我们支持了 **Baichuan-13B** 模型的训练。请尝试使用 `--model_name_or_path baichuan-inc/Baichuan-13B-Base` 和 `--lora_target W_pack` 参数。使用 Baichuan-13B-Chat 模型时请添加 `--template baichuan` 参数。
 
@@ -56,7 +58,7 @@
 | [Baichuan](https://github.com/baichuan-inc/baichuan-13B) | 7B/13B                      | W_pack            | baichuan |
 | [InternLM](https://github.com/InternLM/InternLM)         | 7B                          | q_proj,v_proj     | intern   |
 | [Qwen](https://github.com/QwenLM/Qwen-7B)                | 7B                          | c_attn            | chatml   |
-| [XVERSE](https://github.com/xverse-ai/XVERSE-13B)        | 13B                         | q_proj,v_proj     | -        |
+| [XVERSE](https://github.com/xverse-ai/XVERSE-13B)        | 13B                         | q_proj,v_proj     | xverse   |
 | [ChatGLM2](https://github.com/THUDM/ChatGLM2-6B)         | 6B                          | query_key_value   | chatglm2 |
 
 - **默认模块**是 `--lora_target` 参数的部分可选项。请使用 `python src/train_bash.py -h` 查看全部可选项。
@@ -152,24 +154,29 @@ pip install -r requirements.txt
 pip install https://github.com/jllllll/bitsandbytes-windows-webui/releases/download/wheels/bitsandbytes-0.39.1-py3-none-win_amd64.whl
 ```
 
-### 浏览器一键微调/测试
+### 浏览器一体化界面
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_web.py
 ```
 
+我们极力推荐新手使用浏览器一体化界面，因为它还可以**自动**生成运行所需的命令行脚本。
+
 目前网页 UI 仅支持**单卡训练**。
 
-### 预训练
+### 单 GPU 训练
+
+#### 预训练
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage pt \
-    --model_name_or_path path_to_your_model \
+    --model_name_or_path path_to_llama_model \
     --do_train \
     --dataset wiki_demo \
     --template default \
     --finetuning_type lora \
+    --lora_target q_proj,v_proj \
     --output_dir path_to_pt_checkpoint \
     --overwrite_cache \
     --per_device_train_batch_size 4 \
@@ -183,16 +190,17 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --fp16
 ```
 
-### 指令监督微调
+#### 指令监督微调
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage sft \
-    --model_name_or_path path_to_your_model \
+    --model_name_or_path path_to_llama_model \
     --do_train \
     --dataset alpaca_gpt4_zh \
     --template default \
     --finetuning_type lora \
+    --lora_target q_proj,v_proj \
     --output_dir path_to_sft_checkpoint \
     --overwrite_cache \
     --per_device_train_batch_size 4 \
@@ -206,16 +214,17 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --fp16
 ```
 
-### 奖励模型训练
+#### 奖励模型训练
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage rm \
-    --model_name_or_path path_to_your_model \
+    --model_name_or_path path_to_llama_model \
     --do_train \
     --dataset comparison_gpt4_zh \
     --template default \
     --finetuning_type lora \
+    --lora_target q_proj,v_proj \
     --resume_lora_training False \
     --checkpoint_dir path_to_sft_checkpoint \
     --output_dir path_to_rm_checkpoint \
@@ -224,22 +233,23 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --lr_scheduler_type cosine \
     --logging_steps 10 \
     --save_steps 1000 \
-    --learning_rate 1e-5 \
+    --learning_rate 1e-6 \
     --num_train_epochs 1.0 \
     --plot_loss \
     --fp16
 ```
 
-### PPO 训练
+#### PPO 训练
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage ppo \
-    --model_name_or_path path_to_your_model \
+    --model_name_or_path path_to_llama_model \
     --do_train \
     --dataset alpaca_gpt4_zh \
     --template default \
     --finetuning_type lora \
+    --lora_target q_proj,v_proj \
     --resume_lora_training False \
     --checkpoint_dir path_to_sft_checkpoint \
     --reward_model path_to_rm_checkpoint \
@@ -254,16 +264,17 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --plot_loss
 ```
 
-### DPO 训练
+#### DPO 训练
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage dpo \
-    --model_name_or_path path_to_your_model \
+    --model_name_or_path path_to_llama_model \
     --do_train \
     --dataset comparison_gpt4_zh \
     --template default \
     --finetuning_type lora \
+    --lora_target q_proj,v_proj \
     --resume_lora_training False \
     --checkpoint_dir path_to_sft_checkpoint \
     --output_dir path_to_dpo_checkpoint \
@@ -353,12 +364,55 @@ deepspeed --num_gpus 8 --master_port=9901 src/train_bash.py \
 
 </details>
 
+### 导出微调后的模型
+
+```bash
+python src/export_model.py \
+    --model_name_or_path path_to_llama_model \
+    --template default \
+    --finetuning_type lora \
+    --checkpoint_dir path_to_checkpoint \
+    --output_dir path_to_export
+```
+
+### API 服务
+
+```bash
+python src/api_demo.py \
+    --model_name_or_path path_to_llama_model \
+    --template default \
+    --finetuning_type lora \
+    --checkpoint_dir path_to_checkpoint
+```
+
+关于 API 文档请见 `http://localhost:8000/docs`。
+
+### 命令行测试
+
+```bash
+python src/cli_demo.py \
+    --model_name_or_path path_to_llama_model \
+    --template default \
+    --finetuning_type lora \
+    --checkpoint_dir path_to_checkpoint
+```
+
+### 浏览器测试
+
+```bash
+python src/web_demo.py \
+    --model_name_or_path path_to_llama_model \
+    --template default \
+    --finetuning_type lora \
+    --checkpoint_dir path_to_checkpoint
+```
+
 ### 指标评估（BLEU 分数和汉语 ROUGE 分数）
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage sft \
-    --model_name_or_path path_to_your_model \
+    --model_name_or_path path_to_llama_model \
     --do_eval \
     --dataset alpaca_gpt4_zh \
     --template default \
@@ -377,7 +431,7 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage sft \
-    --model_name_or_path path_to_your_model \
+    --model_name_or_path path_to_llama_model \
     --do_predict \
     --dataset alpaca_gpt4_zh \
     --template default \
@@ -387,49 +441,6 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --per_device_eval_batch_size 8 \
     --max_samples 100 \
     --predict_with_generate
-```
-
-### API 服务
-
-```bash
-python src/api_demo.py \
-    --model_name_or_path path_to_your_model \
-    --template default \
-    --finetuning_type lora \
-    --checkpoint_dir path_to_checkpoint
-```
-
-关于 API 文档请见 `http://localhost:8000/docs`。
-
-### 命令行测试
-
-```bash
-python src/cli_demo.py \
-    --model_name_or_path path_to_your_model \
-    --template default \
-    --finetuning_type lora \
-    --checkpoint_dir path_to_checkpoint
-```
-
-### 浏览器测试
-
-```bash
-python src/web_demo.py \
-    --model_name_or_path path_to_your_model \
-    --template default \
-    --finetuning_type lora \
-    --checkpoint_dir path_to_checkpoint
-```
-
-### 导出微调模型
-
-```bash
-python src/export_model.py \
-    --model_name_or_path path_to_your_model \
-    --template default \
-    --finetuning_type lora \
-    --checkpoint_dir path_to_checkpoint \
-    --output_dir path_to_export
 ```
 
 ## TODO
@@ -451,6 +462,8 @@ python src/export_model.py \
 - [Baichuan](https://huggingface.co/baichuan-inc/baichuan-7B/resolve/main/baichuan-7B%20%E6%A8%A1%E5%9E%8B%E8%AE%B8%E5%8F%AF%E5%8D%8F%E8%AE%AE.pdf)
 - [InternLM](https://github.com/InternLM/InternLM#open-source-license)
 - [Qwen](https://huggingface.co/Qwen/Qwen-7B-Chat/blob/main/LICENSE)
+- [XVERSE](https://github.com/xverse-ai/XVERSE-13B/blob/main/MODEL_LICENSE.pdf)
+- [ChatGLM2](https://github.com/THUDM/ChatGLM2-6B/blob/main/MODEL_LICENSE)
 
 ## 引用
 

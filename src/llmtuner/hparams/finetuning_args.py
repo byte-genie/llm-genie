@@ -8,7 +8,7 @@ class FinetuningArguments:
     r"""
     Arguments pertaining to which techniques we are going to fine-tuning with.
     """
-    finetuning_type: Optional[Literal["none", "freeze", "lora", "full"]] = field(
+    finetuning_type: Optional[Literal["lora", "freeze", "full", "none"]] = field(
         default="lora",
         metadata={"help": "Which fine-tuning method to use."}
     )
@@ -21,7 +21,8 @@ class FinetuningArguments:
                   Falcon choices: [\"32\", \"60\"], \
                   Baichuan choices: [\"32\", \"40\"] \
                   Qwen choices: [\"32\"], \
-                  XVERSE choices: [\"40\"]"}
+                  XVERSE choices: [\"40\"], \
+                  ChatGLM2 choices: [\"28\"]"}
     )
     num_layer_trainable: Optional[int] = field(
         default=3,
@@ -31,7 +32,7 @@ class FinetuningArguments:
         default="mlp",
         metadata={"help": "Name of trainable modules for partial-parameter (freeze) fine-tuning. \
                   LLaMA choices: [\"mlp\", \"self_attn\"], \
-                  BLOOM & Falcon choices: [\"mlp\", \"self_attention\"], \
+                  BLOOM & Falcon & ChatGLM2 choices: [\"mlp\", \"self_attention\"], \
                   Baichuan choices: [\"mlp\", \"self_attn\"], \
                   Qwen choices: [\"mlp\", \"attn\"], \
                   LLaMA-2, InternLM, XVERSE choices: the same as LLaMA."}
@@ -49,10 +50,10 @@ class FinetuningArguments:
         metadata={"help": "Dropout rate for the LoRA fine-tuning."}
     )
     lora_target: Optional[str] = field(
-        default="q_proj,v_proj",
+        default=None,
         metadata={"help": "Name(s) of target modules to apply LoRA. Use commas to separate multiple modules. \
                   LLaMA choices: [\"q_proj\", \"k_proj\", \"v_proj\", \"o_proj\", \"gate_proj\", \"up_proj\", \"down_proj\"], \
-                  BLOOM & Falcon choices: [\"query_key_value\", \"self_attention.dense\", \"mlp.dense\"], \
+                  BLOOM & Falcon & ChatGLM2 choices: [\"query_key_value\", \"self_attention.dense\", \"mlp.dense\"], \
                   Baichuan choices: [\"W_pack\", \"o_proj\", \"gate_proj\", \"up_proj\", \"down_proj\"], \
                   Qwen choices: [\"c_attn\", \"attn.c_proj\", \"w1\", \"w2\", \"mlp.c_proj\"], \
                   LLaMA-2, InternLM, XVERSE choices: the same as LLaMA."}
@@ -60,6 +61,10 @@ class FinetuningArguments:
     resume_lora_training: Optional[bool] = field(
         default=True,
         metadata={"help": "Whether to resume training from the last LoRA weights or create new weights after merging them."}
+    )
+    ppo_score_norm: Optional[bool] = field(
+        default=False,
+        metadata={"help": "Use score normalization in PPO Training."}
     )
     dpo_beta: Optional[float] = field(
         default=0.1,
@@ -77,7 +82,7 @@ class FinetuningArguments:
 
         self.trainable_layers = ["{:d}.{}".format(idx, self.name_module_trainable) for idx in trainable_layer_ids]
 
-        assert self.finetuning_type in ["none", "freeze", "lora", "full"], "Invalid fine-tuning method."
+        assert self.finetuning_type in ["lora", "freeze", "full", "none"], "Invalid fine-tuning method."
 
     def save_to_json(self, json_path: str):
         r"""Saves the content of this instance in JSON format inside `json_path`."""
