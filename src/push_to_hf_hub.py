@@ -11,6 +11,7 @@ def push_model_to_hf_hub(
         model_id: str,
         checkpoints_dir: str = '/data/checkpoints',
         org_id: str = 'ESGenie',
+        private: bool = True,
         hf_token: str = "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",
 ):
     ## login to huggingface
@@ -35,9 +36,17 @@ def push_model_to_hf_hub(
         is_trainable=True,
     )
     ## push model to hub
-    model.push_to_hub(f"{org_id}/{model_id}")
+    model.push_to_hub(
+        f"{org_id}/{model_id}",
+        private=private,
+        use_auth_token=True,
+    )
     ## push tokenizer
-    tokenizer.push_to_hub(f"{org_id}/{model_id}")
+    tokenizer.push_to_hub(
+        f"{org_id}/{model_id}",
+        private=private,
+        use_auth_token=True,
+    )
     ## return model_id
     return {'status': 'successful', 'data': model_id}
 
