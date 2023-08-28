@@ -12,6 +12,7 @@ def push_model_to_hf_hub(
         checkpoints_dir: str = '/data/checkpoints',
         org_id: str = 'ESGenie',
         private: bool = True,
+        merge_base_and_lora: int = 1,
         hf_token: str = "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",
 ):
     ## login to huggingface
@@ -35,6 +36,10 @@ def push_model_to_hf_hub(
         use_auth_token=True,
         is_trainable=True,
     )
+    ## if we are to merge base and lora
+    if merge_base_and_lora:
+        ## merge lora with base
+        model = model.merge_and_unload()
     ## push model to hub
     model.push_to_hub(
         f"{org_id}/{model_id}",
