@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # LLM-Genie: an integrated framework for LLM training
-=======
-# LLM-Genie
->>>>>>> 9246a74c19763bbbe626403bb3c78f89c06d2ac8
 
 
 ## Supported Models
