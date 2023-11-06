@@ -1,44 +1,44 @@
-<<<<<<< HEAD
-# LLM-Genie: an integrated framework for LLM training
-=======
 # LLM-Genie
->>>>>>> 9246a74c19763bbbe626403bb3c78f89c06d2ac8
 
+## 模型
 
-## Supported Models
-
-| Model                                                    | Model size                  | Default module    | Template |
+| 模型名                                                   | 模型大小                     | 默认模块           | Template |
 | -------------------------------------------------------- | --------------------------- | ----------------- |----------|
 | [LLaMA](https://github.com/facebookresearch/llama)       | 7B/13B/33B/65B              | q_proj,v_proj     | -        |
-| [LLaMA-2](https://huggingface.co/meta-llama)             | 7B/13B/70B                  | q_proj,v_proj     | llama2   | | 560M/1.1B/1.7B/3B/7.1B/176B | query_key_value   | -        |
-| [Falcon](https://huggingface.co/tiiuae/falcon-7b)        | 7B/40B                      | query_key_value   | -        | | 7B                          | q_proj,v_proj     | intern   |
-| [Qwen](https://github.com/QwenLM/Qwen-7B)                | 7B                          | c_attn            | chatml   | | 13B                         | q_proj,v_proj     | -        |
+| [LLaMA-2](https://huggingface.co/meta-llama)             | 7B/13B/70B                  | q_proj,v_proj     | llama2   |
+| [BLOOM](https://huggingface.co/bigscience/bloom)         | 560M/1.1B/1.7B/3B/7.1B/176B | query_key_value   | -        |
+| [BLOOMZ](https://huggingface.co/bigscience/bloomz)       | 560M/1.1B/1.7B/3B/7.1B/176B | query_key_value   | -        |
+| [Falcon](https://huggingface.co/tiiuae/falcon-7b)        | 7B/40B                      | query_key_value   | -        |
+| [Baichuan](https://github.com/baichuan-inc/baichuan-13B) | 7B/13B                      | W_pack            | baichuan |
+| [InternLM](https://github.com/InternLM/InternLM)         | 7B                          | q_proj,v_proj     | intern   |
+| [Qwen](https://github.com/QwenLM/Qwen-7B)                | 7B                          | c_attn            | chatml   |
+| [XVERSE](https://github.com/xverse-ai/XVERSE-13B)        | 13B                         | q_proj,v_proj     | -        |
 | [ChatGLM2](https://github.com/THUDM/ChatGLM2-6B)         | 6B                          | query_key_value   | chatglm2 |
 
-- **Default module** is used for the `--lora_target` argument. Please use `python src/train_bash.py -h` to see all available options.
-- For the "base" models, the `--template` argument can be chosen from `default`, `alpaca`, `vicuna` etc. But make sure to use the corresponding template for the "chat" models.
+- **默认模块**是 `--lora_target` 参数的部分可选项。请使用 `python src/train_bash.py -h` 查看全部可选项。
+- 对于所有“基座”（Base）模型，`--template` 参数可以是 `default`, `alpaca`, `vicuna` 等任意值。但“对话”（Chat）模型请务必使用对应的模板。
 
-## Supported Training Approaches
+## 训练方法
 
-| Approach               |   Full-parameter   | Partial-parameter  |       LoRA         |       QLoRA        |
+| 方法                   |     全参数训练      |    部分参数训练     |       LoRA         |       QLoRA        |
 | ---------------------- | ------------------ | ------------------ | ------------------ | ------------------ |
-| Pre-Training           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| Supervised Fine-Tuning | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| Reward Modeling        |                    |                    | :white_check_mark: | :white_check_mark: |
-| PPO Training           |                    |                    | :white_check_mark: | :white_check_mark: |
-| DPO Training           | :white_check_mark: |                    | :white_check_mark: | :white_check_mark: |
+| 预训练                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| 指令监督微调            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| 奖励模型训练            |                    |                    | :white_check_mark: | :white_check_mark: |
+| PPO 训练               |                    |                    | :white_check_mark: | :white_check_mark: |
+| DPO 训练               | :white_check_mark: |                    | :white_check_mark: | :white_check_mark: |
 
-- Use `--quantization_bit 4/8` argument to enable QLoRA.
+- 使用 `--quantization_bit 4/8` 参数来启用 QLoRA 训练。
 
-## Provided Datasets
+## 数据集
 
-- For pre-training:
+- 用于预训练：
   - [Wiki Demo (en)](data/wiki_demo.txt)
   - [RefinedWeb (en)](https://huggingface.co/datasets/tiiuae/falcon-refinedweb)
   - [StarCoder (en)](https://huggingface.co/datasets/bigcode/starcoderdata)
   - [Wikipedia (en)](https://huggingface.co/datasets/olm/olm-wikipedia-20221220)
   - [Wikipedia (zh)](https://huggingface.co/datasets/pleisto/wikipedia-cn-20230720-filtered)
-- For supervised fine-tuning:
+- 用于指令监督微调：
   - [Stanford Alpaca (en)](https://github.com/tatsu-lab/stanford_alpaca)
   - [Stanford Alpaca (zh)](https://github.com/ymcui/Chinese-LLaMA-Alpaca)
   - [GPT-4 Generated Data (en&zh)](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM)
@@ -59,38 +59,40 @@
   - [Web QA (zh)](https://huggingface.co/datasets/suolyer/webqa)
   - [UltraChat (en)](https://github.com/thunlp/UltraChat)
   - [WebNovel (zh)](https://huggingface.co/datasets/zxbsmk/webnovel_cn)
-- For reward modeling or DPO training:
+- 用于奖励模型或 DPO 训练：
   - [HH-RLHF (en)](https://huggingface.co/datasets/Anthropic/hh-rlhf)
   - [Open Assistant (multilingual)](https://huggingface.co/datasets/OpenAssistant/oasst1)
   - [GPT-4 Generated Data (en&zh)](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM)
 
-Please refer to [data/README.md](data/README.md) for details.
+使用方法请参考 [data/README.md](data/README_zh.md) 文件。
 
-Some datasets require confirmation before using them, so we recommend logging in with your Hugging Face account using these commands.
+部分数据集的使用需要确认，我们推荐使用下述命令登录您的 Hugging Face 账户。
 
 ```bash
 pip install --upgrade huggingface_hub
 huggingface-cli login
 ```
 
-## Requirement
+## 软件依赖
 
-- Python 3.8+ and PyTorch 1.13.1+
-- 🤗Transformers, Datasets, Accelerate, PEFT and TRL
-- sentencepiece and tiktoken
-- jieba, rouge-chinese and nltk (used at evaluation)
-- gradio and matplotlib (used in web_demo.py)
-- uvicorn, fastapi and sse-starlette (used in api_demo.py)
+- Python 3.8+ 和 PyTorch 1.13.1+
+- 🤗Transformers, Datasets, Accelerate, PEFT 和 TRL
+- sentencepiece 和 tiktoken
+- jieba, rouge-chinese 和 nltk (用于评估)
+- gradio 和 matplotlib (用于网页端交互)
+- uvicorn, fastapi 和 sse-starlette (用于 API)
 
-## Getting Started
+以及 **强而有力的 GPU**！
 
-### Data Preparation (optional)
+## 如何使用
 
-Please refer to `data/example_dataset` for checking the details about the format of dataset files. You can either use a single `.json` file or a [dataset loading script](https://huggingface.co/docs/datasets/dataset_script) with multiple files to create a custom dataset.
+### 数据准备（可跳过）
 
-Note: please update `data/dataset_info.json` to use your custom dataset. About the format of this file, please refer to `data/README.md`.
+关于数据集文件的格式，请参考 `data/example_dataset` 文件夹的内容。构建自定义数据集时，既可以使用单个 `.json` 文件，也可以使用一个[数据加载脚本](https://huggingface.co/docs/datasets/dataset_script)和多个文件。
 
-### Dependence Installation (optional)
+注意：使用自定义数据集时，请更新 `data/dataset_info.json` 文件，该文件的格式请参考 `data/README.md`。
+
+### 环境搭建（可跳过）
 
 ```bash
 git lfs install
@@ -101,13 +103,21 @@ cd llm-genie
 pip install -r requirements.txt
 ```
 
-If you want to enable the quantized LoRA (QLoRA) on the Windows platform, you will be required to install a pre-built version of `bitsandbytes` library, which supports CUDA 11.1 to 12.1.
+如果要在 Windows 平台上开启量化 LoRA（QLoRA），需要安装预编译的 `bitsandbytes` 库, 支持 CUDA 11.1 到 12.1.
 
 ```bash
 pip install https://github.com/jllllll/bitsandbytes-windows-webui/releases/download/wheels/bitsandbytes-0.39.1-py3-none-win_amd64.whl
 ```
 
-### Pre-Training
+### 浏览器一键微调/测试
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/train_web.py
+```
+
+目前网页 UI 仅支持**单卡训练**。
+
+### 预训练
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
@@ -130,14 +140,14 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --fp16
 ```
 
-### Supervised Fine-Tuning
+### 指令监督微调
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage sft \
     --model_name_or_path path_to_your_model \
     --do_train \
-    --dataset alpaca_gpt4_en \
+    --dataset alpaca_gpt4_zh \
     --template default \
     --finetuning_type lora \
     --output_dir path_to_sft_checkpoint \
@@ -153,14 +163,14 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --fp16
 ```
 
-### Reward Modeling
+### 奖励模型训练
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage rm \
     --model_name_or_path path_to_your_model \
     --do_train \
-    --dataset comparison_gpt4_en \
+    --dataset comparison_gpt4_zh \
     --template default \
     --finetuning_type lora \
     --resume_lora_training False \
@@ -177,14 +187,38 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --fp16
 ```
 
-### DPO Training
+### PPO 训练
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
+    --stage ppo \
+    --model_name_or_path path_to_your_model \
+    --do_train \
+    --dataset alpaca_gpt4_zh \
+    --template default \
+    --finetuning_type lora \
+    --resume_lora_training False \
+    --checkpoint_dir path_to_sft_checkpoint \
+    --reward_model path_to_rm_checkpoint \
+    --output_dir path_to_ppo_checkpoint \
+    --per_device_train_batch_size 2 \
+    --gradient_accumulation_steps 4 \
+    --lr_scheduler_type cosine \
+    --logging_steps 10 \
+    --save_steps 1000 \
+    --learning_rate 1e-5 \
+    --num_train_epochs 1.0 \
+    --plot_loss
+```
+
+### DPO 训练
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage dpo \
     --model_name_or_path path_to_your_model \
     --do_train \
-    --dataset comparison_gpt4_en \
+    --dataset comparison_gpt4_zh \
     --template default \
     --finetuning_type lora \
     --resume_lora_training False \
@@ -201,16 +235,16 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --fp16
 ```
 
-### Distributed Training
+### 多 GPU 分布式训练
 
-#### Use Huggingface Accelerate
+#### 使用 Huggingface Accelerate
 
 ```bash
-accelerate config # configure the environment
-accelerate launch src/train_bash.py # arguments (same as above)
+accelerate config # 首先配置分布式环境
+accelerate launch src/train_bash.py # 参数同上
 ```
 
-<details><summary>Example config.yaml for training with DeepSpeed ZeRO-2</summary>
+<details><summary>使用 DeepSpeed ZeRO-2 进行全参数微调的 Accelerate 配置示例</summary>
 
 ```yaml
 compute_environment: LOCAL_MACHINE
@@ -238,15 +272,15 @@ use_cpu: false
 
 </details>
 
-#### Use DeepSpeed
+#### 使用 DeepSpeed
 
 ```bash
 deepspeed --num_gpus 8 --master_port=9901 src/train_bash.py \
     --deepspeed ds_config.json \
-    ... # arguments (same as above)
+    ... # 参数同上
 ```
 
-<details><summary>Example ds_config.json for training with DeepSpeed ZeRO-2</summary>
+<details><summary>使用 DeepSpeed ZeRO-2 进行全参数微调的 DeepSpeed 配置示例</summary>
 
 ```json
 {
@@ -276,14 +310,14 @@ deepspeed --num_gpus 8 --master_port=9901 src/train_bash.py \
 
 </details>
 
-### Evaluation (BLEU and ROUGE_CHINESE)
+### 指标评估（BLEU 分数和汉语 ROUGE 分数）
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage sft \
     --model_name_or_path path_to_your_model \
     --do_eval \
-    --dataset alpaca_gpt4_en \
+    --dataset alpaca_gpt4_zh \
     --template default \
     --finetuning_type lora \
     --checkpoint_dir path_to_checkpoint \
@@ -293,16 +327,16 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --predict_with_generate
 ```
 
-We recommend using `--per_device_eval_batch_size=1` and `--max_target_length 128` at 4/8-bit evaluation.
+我们建议在量化模型的评估中使用 `--per_device_eval_batch_size=1` 和 `--max_target_length 128`。
 
-### Predict
+### 模型预测
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --stage sft \
     --model_name_or_path path_to_your_model \
     --do_predict \
-    --dataset alpaca_gpt4_en \
+    --dataset alpaca_gpt4_zh \
     --template default \
     --finetuning_type lora \
     --checkpoint_dir path_to_checkpoint \
@@ -312,7 +346,7 @@ CUDA_VISIBLE_DEVICES=0 python src/train_bash.py \
     --predict_with_generate
 ```
 
-### API Demo
+### API 服务
 
 ```bash
 python src/api_demo.py \
@@ -322,9 +356,9 @@ python src/api_demo.py \
     --checkpoint_dir path_to_checkpoint
 ```
 
-Visit `http://localhost:8000/docs` for API documentation.
+关于 API 文档请见 `http://localhost:8000/docs`。
 
-### CLI Demo
+### 命令行测试
 
 ```bash
 python src/cli_demo.py \
@@ -334,7 +368,7 @@ python src/cli_demo.py \
     --checkpoint_dir path_to_checkpoint
 ```
 
-### Web Demo
+### 浏览器测试
 
 ```bash
 python src/web_demo.py \
@@ -344,7 +378,7 @@ python src/web_demo.py \
     --checkpoint_dir path_to_checkpoint
 ```
 
-### Export model
+### 导出微调模型
 
 ```bash
 python src/export_model.py \
@@ -355,11 +389,17 @@ python src/export_model.py \
     --output_dir path_to_export
 ```
 
-## License
+## TODO
 
-This repository is licensed under the [Apache-2.0 License](LICENSE).
+- [ ] 实现 flash attention ([torch](https://pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html) / [xformers](https://github.com/facebookresearch/xformers) / [flashattn](https://github.com/Dao-AILab/flash-attention))。
+- [ ] 在推理阶段使用 Multi-query attention 进行加速。
+- [ ] 支持 RLHF 的全参数微调。
 
-Please follow the model licenses to use the corresponding model weights:
+## 协议
+
+本仓库的代码依照 [Apache-2.0](LICENSE) 协议开源。
+
+使用模型权重时，请遵循对应的模型协议：
 
 - [LLaMA](https://github.com/facebookresearch/llama/blob/main/MODEL_CARD.md)
 - [LLaMA-2](https://ai.meta.com/llama/license/)
@@ -368,12 +408,10 @@ Please follow the model licenses to use the corresponding model weights:
 - [Baichuan](https://huggingface.co/baichuan-inc/baichuan-7B/resolve/main/baichuan-7B%20%E6%A8%A1%E5%9E%8B%E8%AE%B8%E5%8F%AF%E5%8D%8F%E8%AE%AE.pdf)
 - [InternLM](https://github.com/InternLM/InternLM#open-source-license)
 - [Qwen](https://huggingface.co/Qwen/Qwen-7B-Chat/blob/main/LICENSE)
-- [XVERSE](https://github.com/xverse-ai/XVERSE-13B/blob/main/MODEL_LICENSE.pdf)
-- [ChatGLM2](https://github.com/THUDM/ChatGLM2-6B/blob/main/MODEL_LICENSE)
 
-## Citation
+## 引用
 
-Cite this work as:
+如果您觉得此项目有帮助，请考虑以下列格式引用
 
 ```bibtex
 @Misc{llm-genie,
