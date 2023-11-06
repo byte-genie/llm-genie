@@ -24,7 +24,7 @@ def main():
         name="llmtuner",
         version=get_version(),
         author="Byte-Genie",
-        author_email="info" "@" "esgnie.org",
+        author_email="info" "@" "byte-genie.com",
         description="LLM fine-tuning framework using PEFT",
         long_description=open("README.md", "r", encoding="utf-8").read(),
         long_description_content_type="text/markdown",
