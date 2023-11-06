@@ -23,7 +23,7 @@ def main():
     setup(
         name="llmtuner",
         version=get_version(),
-        author="Byte-Genie",
+        author="ByteGenie",
         author_email="info" "@" "byte-genie.com",
         description="LLM fine-tuning framework using PEFT",
         long_description=open("README.md", "r", encoding="utf-8").read(),
